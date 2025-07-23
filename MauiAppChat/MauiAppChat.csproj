@@ -60,10 +60,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Remove="appsettings.local.json" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<PackageReference Include="Firebase.Auth" Version="1.0.0" />
 		<PackageReference Include="Google.Cloud.Firestore" Version="3.10.0" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
@@ -73,10 +69,6 @@
 	<ItemGroup>
 	  <Folder Include="ViewModels\" />
 	  <Folder Include="Views\" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <MauiAsset Include="appsettings.local.json" />
 	</ItemGroup>
 
 </Project>
