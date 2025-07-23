@@ -1,4 +1,5 @@
 ﻿# Ignore local settings with secrets
+appsettings.local.json
 
 # Ignore user-specific files (optional)
 *.user
