@@ -1,9 +1,15 @@
-﻿using Google.Cloud.Firestore;
-using Firebase.Auth;
+﻿using Firebase.Auth;
+using Google.Api;
+using Google.Cloud.Firestore;
+using Google.Cloud.Firestore.V1;
+using MauiAppChat.Models;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace MauiAppChat.Services
@@ -13,53 +19,186 @@ namespace MauiAppChat.Services
         #region fields
         private readonly FirebaseAuthProvider? _firebaseAuthProvider;   
         private FirestoreDb? _firestoreDb;
-        private const string _projectId = "your-project-id";
-        private const string _CredentialsFile = "";
-        private const string _apiKey = " ";
+        private readonly string? _projectId;
+        private readonly string? _credentialsFile ;
+        private readonly string? _apiKey;
+        private List<FirestoreChangeListener> listeners = new List<FirestoreChangeListener>();
+        #endregion
 
-
-
-
-
-
-        public Task<bool> CreateOrUpdateDataAsync<T>(string Collectotion, string DocumentId, T data)
+        #region costructor
+        public FirebaseService()
         {
-            throw new NotImplementedException();
+            var settings = LoadFirebaseSettings();
+            _apiKey = settings.ApiKey;
+            _projectId = settings.ProjectId;
+            _credentialsFile = settings.CredentialsFile;
+
+            _firebaseAuthProvider = new FirebaseAuthProvider(new FirebaseConfig(_apiKey));
+        }
+        #endregion
+
+        #region load json settings  
+        private FirebaseSettings LoadFirebaseSettings()
+        {
+            var appsettingsPath = Path.Combine(FileSystem.AppDataDirectory, "appsettings.local.json");
+            var json = File.ReadAllText(appsettingsPath);
+            var root = JsonSerializer.Deserialize<Dictionary<string, FirebaseSettings>>(json);
+            return root["Firebase"];
+        }
+        #endregion
+
+        #region setup firestore method
+        private async Task SetupFirestore()
+        {
+            if (_firestoreDb == null)
+            {
+                var stream = await FileSystem.OpenAppPackageFileAsync(_credentialsFile);
+                using var reader = new StreamReader(stream);
+                var jsonCredentials = await reader.ReadToEndAsync();
+
+                _firestoreDb = new FirestoreDbBuilder
+                {
+                    ProjectId = _projectId,
+                    JsonCredentials = jsonCredentials
+                }.Build();
+            }
+        }
+        #endregion
+
+        #region Firebase authentication methods    
+        public async Task<bool> SendPasswordResettEmailAsync(string email)
+        {
+            try
+            {
+                await _firebaseAuthProvider.SendPasswordResetEmailAsync(email);
+                Console.WriteLine($"Password reset email sent to: {email}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error sending password reset email: {ex.Message}");
+                return false;
+            }
         }
 
-        public Task<bool> deleteDataAsync<T>(string Collection, string DocumentId)
+        public async Task<string?> SignInWithEmailAndPasswordAsync(string email, string password)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var auth = await _firebaseAuthProvider.SignInWithEmailAndPasswordAsync(email, password);                            
+                return auth.User.LocalId;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error logging in: " + ex.Message);
+                return null;
+            }
         }
 
-        public Task<List<T>> GetAllDataAsync<T>(string Collection) where T : class
+        public async Task<string?> SignUpWithEmailAndPasswordAsync(string email, string password)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var auth = await _firebaseAuthProvider.CreateUserWithEmailAndPasswordAsync(email, password);
+                return auth.User.LocalId;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error registering user: {ex.Message}");
+                return null;
+            }
+        }
+        #endregion
+
+        #region firestore CRUD(Create, Read, Update, Delete) Methods
+        public async Task<bool> CreateOrUpdateDataAsync<T>(string collection, string documentId, T data)
+        {
+            try
+            {
+                await SetupFirestore();
+                var document = _firestoreDb.Collection(collection).Document(documentId);
+                await document.SetAsync(data);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error adding data: {ex.Message}");
+                return false;
+            }
         }
 
-        public Task ListenToCollectionChangesAsync<T>(string Collection, Action<List<T>> onDataChanged) where T : class
+       
+        public async Task<bool> deleteDataAsync<T>(string collection, string documentId)
         {
-            throw new NotImplementedException();
+            try
+            {
+                await SetupFirestore();
+                var document = _firestoreDb.Collection(collection).Document(documentId);
+                await document.DeleteAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting data: {ex.Message}");
+                return false;
+            }
         }
 
-        public Task<bool> ReadDateAsync<T>(string Collection, string DocumentId) where T : class
+        public async Task<List<T>> GetAllDataAsync<T>(string collection) where T : class
         {
-            throw new NotImplementedException();
+            try
+            {
+                await SetupFirestore();
+                var snapshot = await _firestoreDb.Collection(collection).GetSnapshotAsync();
+                return snapshot.Documents.Select(doc => doc.ConvertTo<T>()).ToList();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting documents: {ex.Message}");
+                return new List<T>();
+            }
         }
 
-        public Task<bool> SendPasswordResettEmailAsync(string email)
+        public async Task<T> ReadDateAsync<T>(string collection, string documentId) where T : class
         {
-            throw new NotImplementedException();
+            try
+            {
+                await SetupFirestore();
+                var document = await _firestoreDb.Collection(collection).Document(documentId).GetSnapshotAsync();
+                return document.Exists ? document.ConvertTo<T>() : null;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error reading data: {ex.Message}");
+                return null;
+            }
         }
+        #endregion
 
-        public Task<string?> SignInWithEmailAndPasswordAsync(string email, string password)
+        #region Listening Methods
+        public async Task ListenToCollectionChangesAsync<T>(string collectionName, Action<List<T>> onDataChanged) where T : class
         {
-            throw new NotImplementedException();
-        }
+            await SetupFirestore();
+            CollectionReference collection = _firestoreDb.Collection(collectionName);
 
-        public Task<string?> SignUpWithEmailAndPasswordAsync(string email, string password)
-        {
-            throw new NotImplementedException();
+            FirestoreChangeListener listener = collection.Listen(snapshot =>
+            {
+                List<T> documents = new List<T>();
+                foreach (var doc in snapshot.Documents)
+                {
+                    T data = doc.ConvertTo<T>();
+                    documents.Add(data);
+                }
+
+                // קורא לפונקציה שמעדכנת את ה-ViewModel
+                onDataChanged(documents);
+            });
+
+            listeners.Add(listener);
         }
+        #endregion
+
+
+
     }
 }

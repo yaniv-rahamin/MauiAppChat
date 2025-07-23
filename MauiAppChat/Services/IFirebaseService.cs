@@ -15,14 +15,14 @@ namespace MauiAppChat.Services
         #endregion
 
         #region firestore CRUD(Create, Read, Update, Delete) Methods
-        Task<bool> CreateOrUpdateDataAsync<T>(string Collectotion ,string DocumentId , T data);
-        Task<bool> ReadDateAsync<T>(string Collection, string DocumentId) where T : class;
-        Task<bool> deleteDataAsync<T>(string Collection, string DocumentId);
-        Task<List<T>> GetAllDataAsync<T>(string Collection) where T : class;
+        Task<bool> CreateOrUpdateDataAsync<T>(string collection, string documentId , T data);
+        Task<T> ReadDateAsync<T>(string collection, string documentId) where T : class;
+        Task<bool> deleteDataAsync<T>(string collection, string documentId);
+        Task<List<T>> GetAllDataAsync<T>(string cllection) where T : class;
         #endregion
 
         #region Listening Methods   
-        Task ListenToCollectionChangesAsync<T>(string Collection, Action<List<T>> onDataChanged) where T : class;
+        Task ListenToCollectionChangesAsync<T>(string collection, Action<List<T>> onDataChanged) where T : class;
         #endregion
 
     }
