@@ -3,6 +3,7 @@ using Google.Api;
 using Google.Cloud.Firestore;
 using Google.Cloud.Firestore.V1;
 using MauiAppChat.Models;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -23,45 +24,104 @@ namespace MauiAppChat.Services
         private readonly string? _credentialsFile ;
         private readonly string? _apiKey;
         private List<FirestoreChangeListener> listeners = new List<FirestoreChangeListener>();
+        private readonly IConfiguration _configuration;
         #endregion
 
         #region costructor
+        //public FirebaseService(IConfiguration configuration)
+        //{
+        //    _configuration = configuration;
+        //    var firebaseConfigSection = _configuration.GetSection("Firebase");
+        //    var settings = new FirebaseSettings
+        //    {
+        //        ApiKey = firebaseConfigSection["ApiKey"],
+        //        ProjectId = firebaseConfigSection["ProjectId"],
+        //        CredentialsFile = firebaseConfigSection["CredentialsFile"]
+        //    };
+
+        //    _apiKey = settings.ApiKey;
+        //    _projectId = settings.ProjectId;
+        //    _credentialsFile = settings.CredentialsFile;
+
+        //    _firebaseAuthProvider = new FirebaseAuthProvider(new FirebaseConfig(_apiKey));
+        //}
         public FirebaseService()
         {
-            var settings = LoadFirebaseSettings();
+            // טוען את ההגדרות מה־JSON
+            var settingsTask = LoadFirebaseSettingsAsync();
+            settingsTask.Wait(); // כאן מחכים לסיום הטעינה (בבנאי אסינכרוני לא אפשרי)
+            var settings = settingsTask.Result;
+
             _apiKey = settings.ApiKey;
             _projectId = settings.ProjectId;
             _credentialsFile = settings.CredentialsFile;
 
+            // יוצר את FirebaseAuthProvider
             _firebaseAuthProvider = new FirebaseAuthProvider(new FirebaseConfig(_apiKey));
         }
         #endregion
 
         #region load json settings  
-        private FirebaseSettings LoadFirebaseSettings()
-        {
-            var appsettingsPath = Path.Combine(FileSystem.AppDataDirectory, "appsettings.local.json");
-            var json = File.ReadAllText(appsettingsPath);
-            var root = JsonSerializer.Deserialize<Dictionary<string, FirebaseSettings>>(json);
-            return root["Firebase"];
-        }
+        //private FirebaseSettings LoadFirebaseSettings()
+        //{
+        //    var appsettingsPath = Path.Combine(FileSystem.AppDataDirectory, "appsettings.local.json");
+        //    var json = File.ReadAllText(appsettingsPath);
+        //    var root = JsonSerializer.Deserialize<Dictionary<string, FirebaseSettings>>(json);
+        //    return root["Firebase"];
+        //}
         #endregion
 
         #region setup firestore method
+        //private async Task SetupFirestore()
+        //{
+        //    if (_firestoreDb == null)
+        //    {
+        //        var stream = await FileSystem.OpenAppPackageFileAsync(_credentialsFile);
+        //        using var reader = new StreamReader(stream);
+        //        var jsonCredentials = await reader.ReadToEndAsync();
+
+        //        _firestoreDb = new FirestoreDbBuilder
+        //        {
+        //            ProjectId = _projectId,
+        //            JsonCredentials = jsonCredentials
+        //        }.Build();
+        //    }
+        //}
+        private async Task<FirebaseSettings> LoadFirebaseSettingsAsync()
+        {
+            // שם הקובץ בפרויקט MAUI עם Build Action = Content
+            var fileName = "appsettings.local.json";
+
+            using var stream = await FileSystem.OpenAppPackageFileAsync(fileName);
+            using var reader = new StreamReader(stream);
+            var json = await reader.ReadToEndAsync();
+
+            using var document = JsonDocument.Parse(json);
+            var firebaseSection = document.RootElement.GetProperty("Firebase");
+
+            var settings = new FirebaseSettings
+            {
+                ApiKey = firebaseSection.GetProperty("ApiKey").GetString()!,
+                ProjectId = firebaseSection.GetProperty("ProjectId").GetString()!,
+                CredentialsFile = firebaseSection.GetProperty("CredentialsFile").GetString()!
+            };
+
+            return settings;
+        }
         private async Task SetupFirestore()
         {
-            if (_firestoreDb == null)
-            {
-                var stream = await FileSystem.OpenAppPackageFileAsync(_credentialsFile);
-                using var reader = new StreamReader(stream);
-                var jsonCredentials = await reader.ReadToEndAsync();
+            if (_firestoreDb != null)
+                return;
 
-                _firestoreDb = new FirestoreDbBuilder
-                {
-                    ProjectId = _projectId,
-                    JsonCredentials = jsonCredentials
-                }.Build();
-            }
+            using var stream = await FileSystem.OpenAppPackageFileAsync(_credentialsFile);
+            using var reader = new StreamReader(stream);
+            var jsonCredentials = await reader.ReadToEndAsync();
+
+            _firestoreDb = new FirestoreDbBuilder
+            {
+                ProjectId = _projectId,
+                JsonCredentials = jsonCredentials
+            }.Build();
         }
         #endregion
 
@@ -122,8 +182,13 @@ namespace MauiAppChat.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error adding data: {ex.Message}");
+                Console.WriteLine($"[DOTNET] Error adding data: {ex.Message}");
+                Console.WriteLine(ex.StackTrace);
+                if (ex.InnerException != null)
+                    Console.WriteLine($"Inner: {ex.InnerException.Message}");
                 return false;
+                //Console.WriteLine($"Error adding data: {ex.Message}");
+                //return false;
             }
         }
 
