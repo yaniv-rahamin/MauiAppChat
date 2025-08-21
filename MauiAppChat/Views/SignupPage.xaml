@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="MauiAppChat.Views.SignupPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:viewModel="clr-namespace:MauiAppChat.ViewModels"
+    x:DataType="viewModel:SignupPageViewModel"
+    FlowDirection="RightToLeft">
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="16">
+
+            <Border
+                Padding="20"
+                BackgroundColor="White"
+                Stroke="LightGray"
+                StrokeShape="RoundRectangle 20"
+                StrokeThickness="1">
+
+                <VerticalStackLayout Spacing="16">
+
+                    <!--  לחצן חזור מותאם  -->
+                    <Label
+                        Margin="0,0,0,10"
+                        FontAttributes="Bold"
+                        FontSize="16"
+                        HorizontalOptions="End"
+                        Text="חזור ← "
+                        TextColor="#007AFF">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding NavigateToLoginCommand}" />
+                        </Label.GestureRecognizers>
+                    </Label>
+
+                    <!--  כותרת ראשית  -->
+                    <Label
+                        Margin="0,0,0,10"
+                        FontAttributes="Bold"
+                        FontSize="24"
+                        HorizontalOptions="Center"
+                        Text="הרשמה" />
+
+                    <!--  אימייל  -->
+                    <Label FontAttributes="Bold" Text="אימייל" />
+                    <Grid
+                        Margin="0,0,0,0"
+                        ColumnDefinitions="Auto,*,40"
+                        VerticalOptions="Center">
+                        <Label
+                            Margin="5,0"
+                            FontFamily="MaterialIcons-Regular"
+                            FontSize="24"
+                            Text="&#xE0BE;"
+                            TextColor="Gray"
+                            VerticalTextAlignment="Center" />
+                        <Entry
+                            Grid.Column="1"
+                            Keyboard="Email"
+                            Placeholder="הכנס כתובת אימייל"
+                            Text="{Binding Email}" />
+                    </Grid>
+                    <Label
+                        Margin="40,0"
+                        FontSize="12"
+                        IsVisible="{Binding IsEmailInvalid}"
+                        Text="אימייל לא תקין"
+                        TextColor="Red" />
+                    <!--  סיסמא  -->
+                    <Label FontAttributes="Bold" Text="סיסמה" />
+                    <Grid
+                        Margin="0,0,0,0"
+                        ColumnDefinitions="Auto,*,40"
+                        VerticalOptions="Center">
+
+                        <Label
+                            Margin="5,0"
+                            FontFamily="MaterialIcons-Regular"
+                            FontSize="24"
+                            Text="&#xE897;"
+                            TextColor="Gray"
+                            VerticalTextAlignment="Center" />
+                        <Entry
+                            Grid.Column="1"
+                            IsPassword="{Binding IsPassword}"
+                            Placeholder="בחר סיסמא"
+                            Text="{Binding Password}" />
+                        <Button
+                            Grid.Column="2"
+                            BackgroundColor="Transparent"
+                            Command="{Binding TogglePasswordCommand}"
+                            FontFamily="MaterialIcons-Regular"
+                            Text="{Binding PasswordIcon}"
+                            TextColor="Black" />
+                    </Grid>
+                    <Label
+                        Margin="40,0"
+                        FontSize="12"
+                        IsVisible="{Binding IsPasswordInvalid}"
+                        Text="צריך לפחות שישה תווים"
+                        TextColor="Red" />
+
+                    <!--  כפתור הרשמה  -->
+                    <Button
+                        Margin="0,10"
+                        Padding="12"
+                        BackgroundColor="#007AFF"
+                        Command="{Binding RegisterCommand}"
+                        CornerRadius="10"
+                        Text="הרשם"
+                        TextColor="White" />
+
+                    <!--  אינדיקטור טעינה  -->
+                    <ActivityIndicator
+                        Margin="0,10"
+                        HorizontalOptions="Center"
+                        IsRunning="{Binding IsBusy}"
+                        IsVisible="{Binding IsBusy}"
+                        VerticalOptions="Center"
+                        Color="Gray" />
+
+                </VerticalStackLayout>
+            </Border>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

@@ -18,13 +18,11 @@ namespace MauiAppChat.Models
         [FirestoreProperty]
         public string? Name { get; set; }
         [FirestoreProperty]
-        public string? Username { get; set; }
-        [FirestoreProperty]
         public string? Email { get; set; }
         [FirestoreProperty]
-        public string? PhoneNumber { get; set; }
+        public string? ProfilePictureUrl { get; set; }
         [FirestoreProperty]
-        public string? ProfilePictureUrl { get; set; }   
+        public string? StatusMessage { get; set; }
 
         [FirestoreProperty]
         public DateTime DateOfBirth

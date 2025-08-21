@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="MauiAppChat.Views.ProfileManagerPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:viewModel="clr-namespace:MauiAppChat.ViewModels"
+    x:DataType="viewModel:ProfileManagerPageViewModel"
+    FlowDirection="RightToLeft">
+    <Border
+        Margin="20"
+        Padding="15"
+        BackgroundColor="White"
+        Shadow="10"
+        Stroke="LightGray"
+        StrokeShape="RoundRectangle 25"
+        StrokeThickness="1">
+
+        <ScrollView>
+            <VerticalStackLayout Padding="10" Spacing="20">
+
+                <!--  תמונת משתמש  -->
+                <Border
+                    Padding="3"
+                    HeightRequest="150"
+                    HorizontalOptions="Center"
+                    Stroke="LightGray"
+                    StrokeShape="Ellipse"
+                    StrokeThickness="2"
+                    WidthRequest="150">
+                    <Image Aspect="AspectFill" Source="{Binding ProfileImage}" />
+                </Border>
+
+                <!--  שם מלא  -->
+                <Entry
+                    Margin="0,10"
+                    BackgroundColor="#F5F5F5"
+                    FontSize="18"
+                    HeightRequest="50"
+                    HorizontalOptions="Fill"
+                    Placeholder="שם מלא"
+                    PlaceholderColor="Gray"
+                    Text="{Binding FullName}" />
+
+                <!--  תאריך לידה  -->
+                <DatePicker
+                    Margin="0,10"
+                    BackgroundColor="#F5F5F5"
+                    Date="{Binding BirthDate}"
+                    Format="dd/MM/yyyy"
+                    HeightRequest="50" />
+
+                <!--  סטטוס אישי  -->
+                <Entry
+                    Margin="0,10"
+                    BackgroundColor="#F5F5F5"
+                    FontSize="16"
+                    HeightRequest="50"
+                    Placeholder="סטטוס קצר על עצמי"
+                    PlaceholderColor="Gray"
+                    Text="{Binding StatusMessage}" />
+
+                <!--  כפתורי תמונה  -->
+                <HorizontalStackLayout HorizontalOptions="Center" Spacing="15">
+                    <Button
+                        BackgroundColor="#007AFF"
+                        Command="{Binding PickImageCommand}"
+                        CornerRadius="25"
+                        Text="בחר תמונה"
+                        TextColor="White"
+                        WidthRequest="120" />
+                    <Button
+                        BackgroundColor="#34C759"
+                        Command="{Binding TakePhotoCommand}"
+                        CornerRadius="25"
+                        Text="צלם"
+                        TextColor="White"
+                        WidthRequest="100" />
+                </HorizontalStackLayout>
+
+                <!--  כפתור שמירה  -->
+                <Button
+                    Margin="0,20"
+                    BackgroundColor="#FF9500"
+                    Command="{Binding SaveCommand}"
+                    CornerRadius="25"
+                    FontSize="18"
+                    HeightRequest="50"
+                    Text="שמור פרופיל"
+                    TextColor="White" />
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </Border>
+</ContentPage>

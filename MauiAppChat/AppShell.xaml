@@ -3,12 +3,23 @@
     x:Class="MauiAppChat.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:local="clr-namespace:MauiAppChat"
+    xmlns:local="clr-namespace:MauiAppChat.Views"
     Title="MauiAppChat">
 
-    <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
+
+    <Tab Title="profile">
+        <Tab.Icon>
+            <FontImageSource FontFamily="MaterialIcons-Regular" Glyph="&#xE7FD;" Size="24" Color="Black"/>
+        </Tab.Icon>
+        <ShellContent Title="Profile" ContentTemplate="{DataTemplate local:ProfilePage}" Route="ProfilePage" />
+    </Tab>
+    
+    <Tab Title="chat">
+        <Tab.Icon>
+            <FontImageSource FontFamily="MaterialIcons-Regular" Glyph="&#xE0B7;" Size="24" Color="Black"/>
+        </Tab.Icon>
+        <ShellContent Title="chat" ContentTemplate="{DataTemplate local:UserListPage}" Route="userListPage" />
+    </Tab>
+    <MenuItem Text="Logout" Command="{Binding LogoutCommand}"/>
 
 </Shell>
